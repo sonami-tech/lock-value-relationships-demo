@@ -1,0 +1,30 @@
+{
+  "name": "lock-value-demo",
+  "version": "1.0.0",
+  "description": "CKB Lock Value Relationships Demo",
+  "type": "module",
+  "main": "lumos.js",
+  "scripts": {
+    "start": "echo \"Usage: 'npm run lumos' (for Lumos demo) or 'npm run ccc' (for CCC demo).\"",
+    "lumos": "node lumos.js",
+    "ccc": "node ccc.js"
+  },
+  "dependencies": {
+    "@ckb-ccc/core": "^1.12.0",
+    "@ckb-lumos/base": "^0.24.0-next.2",
+    "@ckb-lumos/common-scripts": "^0.23.0",
+    "@ckb-lumos/config-manager": "^0.24.0-next.2",
+    "@ckb-lumos/hd": "^0.23.0",
+    "@ckb-lumos/helpers": "^0.24.0-next.2",
+    "blake2b": "^2.1.4",
+    "secp256k1": "^5.0.1"
+  },
+  "keywords": [
+    "ckb",
+    "nervos",
+    "blockchain",
+    "cryptography"
+  ],
+  "author": "",
+  "license": "MIT"
+}

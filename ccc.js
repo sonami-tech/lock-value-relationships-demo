@@ -1,0 +1,96 @@
+/**
+ * CKB Lock Value Relationships Demo - CCC Version
+ * 
+ * This demonstrates the complete chain of relationships between:
+ * Private Key → Public Key → Lock Arg → Lock Script → Lock Hash → Address
+ */
+
+import * as ccc from "@ckb-ccc/core";
+import secp256k1 from "secp256k1";
+import blake2b from "blake2b";
+import { hexToUint8Array, uint8ArrayToHex } from "./util.js";
+
+console.log("=".repeat(80));
+console.log("CKB Lock Value Relationships Demo - Using CCC Library");
+console.log("=".repeat(80));
+
+// Step 1: Private Key (32 bytes)
+const PRIVATE_KEY = "0xd00c06bfd800d27397002dca6fb0993d5ba6399b4238b2f29ee9deb97593d2bc";
+console.log(`\n1. Private Key:\t\t${PRIVATE_KEY}`);
+console.log(`   Length:\t\t${PRIVATE_KEY.length - 2} hex chars (32 bytes)`);
+console.log(`   Purpose:\t\tSecret key that is the basis of all derived values.`);
+
+// Create a mock CCC client for testnet.
+const client = new ccc.ClientPublicTestnet();
+
+// Create CCC Signer
+const signer = new ccc.SignerCkbPrivateKey(client, PRIVATE_KEY);
+
+// Step 2: Public Key - Both Methods
+const publicKeyBuiltIn = signer.publicKey;
+const publicKeyStandalone = uint8ArrayToHex(secp256k1.publicKeyCreate(hexToUint8Array(PRIVATE_KEY)));
+const publicKey = publicKeyBuiltIn; // Use built-in for rest of demo
+
+console.log(`\n2. Public Key:`);
+console.log(`   CCC built-in:\t${publicKeyBuiltIn}`);
+console.log(`   Secp256k1 lib:\t${publicKeyStandalone}`);
+console.log(`   Match:\t\t${publicKeyBuiltIn === publicKeyStandalone ? "✓ Yes" : "✗ No"}`);
+console.log(`   Length:\t\t${publicKey.length - 2} hex chars (33 bytes)`);
+console.log(`   Generation:\t\tCCC signer.publicKey vs secp256k1.publicKeyCreate().`);
+console.log(`   Purpose:\t\tPublic component of cryptographic key pair for digital signatures.`);
+
+// Step 3: Get address object from CCC to extract lock arg
+const addressObj = await signer.getAddressObjSecp256k1();
+const lockScript = addressObj.script;
+
+// Manual Lock Arg calculation for comparison.
+const manualLockArg = uint8ArrayToHex(
+	blake2b(32, null, null, new TextEncoder().encode("ckb-default-hash"))
+		.update(hexToUint8Array(publicKey))
+		.digest()
+).substring(0, 42);
+
+console.log(`\n3. Lock Arg:`);
+console.log(`   CCC built-in:\t${lockScript.args}`);
+console.log(`   Manual calc:\t\t${manualLockArg}`);
+console.log(`   Match:\t\t${lockScript.args === manualLockArg ? "✓ Yes" : "✗ No"}`);
+console.log(`   Length:\t\t${lockScript.args.length - 2} hex chars (20 bytes)`);
+console.log(`   Generation:\t\tCCC signer.getAddressObjSecp256k1().script.args.`);
+console.log(`   Purpose:\t\tUnique identifier derived from public key to specify ownership.`);
+
+// Step 4: Lock Script
+console.log(`\n4. Lock Script:`);
+console.log(`   codeHash:\t\t${lockScript.codeHash}`);
+console.log(`   hashType:\t\t${lockScript.hashType}`);
+console.log(`   args:\t\t${lockScript.args}`);
+console.log(`   Generation:\t\tCCC signer.getAddressObjSecp256k1().script.`);
+console.log(`   Purpose:\t\tComplete specification of lock ownership rules.`);
+
+// Step 5: Lock Hash
+const lockHash = lockScript.hash();
+console.log(`\n5. Lock Hash:\t\t${lockHash}`);
+console.log(`   Length:\t\t${lockHash.length - 2} hex chars (32 bytes)`);
+console.log(`   Generation:\t\tCCC lockScript.hash().`);
+console.log(`   Purpose:\t\tUnique fingerprint of the complete lock script.`);
+
+// Step 6: Address
+const address = addressObj.toString();
+console.log(`\n6. Address:\t\t${address}`);
+console.log(`   Length:\t\t${address.length} characters.`);
+console.log(`   Generation:\t\tCCC addressObj.toString().`);
+console.log(`   Purpose:\t\tHuman-readable encoding of the lock script for transactions.`);
+
+// Summary
+console.log(`\n${"=".repeat(80)}`);
+console.log("TRANSFORMATION SUMMARY:");
+console.log(`${"=".repeat(80)}`);
+console.log("Private Key (32B) → secp256k1 (built-in vs standalone) → Public Key (33B).");
+console.log("Public Key (33B) → ckbhash (blake160) → Lock Arg (20B).");
+console.log("Lock Arg (20B) + codeHash + hashType → Lock Script.");
+console.log("Lock Script → ckbHash(molecule_encode) → Lock Hash (32B).");
+console.log("Lock Script (formatted) → bech32m encode → Address.");
+
+// Completion Message
+console.log(`\n${"=".repeat(80)}`);
+console.log("Demo completed successfully!");
+console.log(`${"=".repeat(80)}`);
