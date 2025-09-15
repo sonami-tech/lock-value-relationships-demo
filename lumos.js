@@ -8,13 +8,13 @@
 import fs from "fs";
 import blake2b from "blake2b";
 import secp256k1 from "secp256k1";
-import { utils } from "@ckb-lumos/base";
+import { utils as lumosUtils } from "@ckb-lumos/base";
 import { initializeConfig } from "@ckb-lumos/config-manager";
 import { encodeToAddress } from "@ckb-lumos/helpers";
 import { key } from "@ckb-lumos/hd";
-import { hexToUint8Array, uint8ArrayToHex } from "./util.js";
+import { hexToUint8Array, uint8ArrayToHex } from "./utils.js";
 
-const { ckbHash, computeScriptHash } = utils;
+const { ckbHash, computeScriptHash } = lumosUtils;
 
 // Load configuration.
 const CONFIG = JSON.parse(fs.readFileSync("./config.json", "utf8"));
@@ -32,7 +32,7 @@ console.log(`\n1. Private Key:\t\t${PRIVATE_KEY}`);
 console.log(`   Length:\t\t${PRIVATE_KEY.length - 2} hex chars (32 bytes)`);
 console.log(`   Purpose:\t\tSecret key that is the basis of all derived values.`);
 
-// Step 2: Public Key (33 bytes, compressed) - Both Methods
+// Step 2: Public Key - Both Methods
 const publicKeyBuiltIn = key.privateToPublic(PRIVATE_KEY);
 const publicKeyStandalone = uint8ArrayToHex(secp256k1.publicKeyCreate(hexToUint8Array(PRIVATE_KEY)));
 const publicKey = publicKeyStandalone; // Use standalone for rest of demo
@@ -45,10 +45,10 @@ console.log(`   Length:\t\t${publicKey.length - 2} hex chars (33 bytes)`);
 console.log(`   Generation:\t\tLumos key.privateToPublic() vs secp256k1.publicKeyCreate().`);
 console.log(`   Purpose:\t\tPublic component of cryptographic key pair for digital signatures.`);
 
-// Step 3: Lock Arg (20 bytes) - Blake160 hash
+// Step 3: Lock Arg
 const lockArg = ckbHash(publicKey).substring(0, 42); // 0x + 40 hex chars = 20 bytes
 
-// Show alternative blake2b calculation for educational purposes.
+// Manual Lock Arg calculation for comparison.
 const manualLockArg = uint8ArrayToHex(
 	blake2b(32, null, null, new TextEncoder().encode("ckb-default-hash"))
 		.update(hexToUint8Array(publicKey))
@@ -60,10 +60,10 @@ console.log(`   Lumos built-in:\t${lockArg}`);
 console.log(`   Manual calc:\t\t${manualLockArg}`);
 console.log(`   Match:\t\t${lockArg === manualLockArg ? "✓ Yes" : "✗ No"}`);
 console.log(`   Length:\t\t${lockArg.length - 2} hex chars (20 bytes)`);
-console.log(`   Generation:\t\tLumos utils.ckbHash(publicKey).substring(0, 42).`);
+console.log(`   Generation:\t\tLumos ckbHash().substring(0, 42) vs blake2b().substring(0, 42).`);
 console.log(`   Purpose:\t\tUnique identifier derived from public key to specify ownership.`);
 
-// Step 4: Lock Script (structure)
+// Step 4: Lock Script
 const lockScript = {
 	codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
 	hashType: "type",
@@ -76,14 +76,14 @@ console.log(`   args:\t\t${lockScript.args}`);
 console.log(`   Generation:\t\tManual object construction with lockArg.`);
 console.log(`   Purpose:\t\tComplete specification of lock ownership rules.`);
 
-// Step 5: Lock Hash (32 bytes) - Script hash
+// Step 5: Lock Hash
 const lockHash = computeScriptHash(lockScript);
 console.log(`\n5. Lock Hash:\t\t${lockHash}`);
 console.log(`   Length:\t\t${lockHash.length - 2} hex chars (32 bytes)`);
 console.log(`   Generation:\t\tLumos utils.computeScriptHash(lockScript).`);
 console.log(`   Purpose:\t\tUnique fingerprint of the complete lock script.`);
 
-// Step 6: Address (human-readable)
+// Step 6: Address
 const address = encodeToAddress(lockScript);
 console.log(`\n6. Address:\t\t${address}`);
 console.log(`   Length:\t\t${address.length} characters.`);

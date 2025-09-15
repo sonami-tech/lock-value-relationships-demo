@@ -23,7 +23,7 @@ Address (human-readable string)
 ### Key Files
 - `ccc.js` - Modern CCC library implementation with higher-level abstractions.
 - `lumos.js` - Explicit Lumos implementation with step-by-step transformations.
-- `util.js` - Utility functions for hex/byte conversions.
+- `utils.js` - Utility functions for hex/byte conversions.
 - `config.json` - CKB configuration for Lumos (testnet settings).
 
 ## Dependencies

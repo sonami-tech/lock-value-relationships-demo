@@ -23,7 +23,7 @@ Address (human-readable string)
 
 - **`ccc.js`** - CCC implementation (recommended).
 - **`lumos.js`** - Lumos implementation (not recommended).
-- **`util.js`** - Various utility functions.
+- **`utils.js`** - Various utility functions.
 - **`config.json`** - CKB configuration for Lumos on testnet.
 
 ## Usage

@@ -8,7 +8,7 @@
 import * as ccc from "@ckb-ccc/core";
 import secp256k1 from "secp256k1";
 import blake2b from "blake2b";
-import { hexToUint8Array, uint8ArrayToHex } from "./util.js";
+import { hexToUint8Array, uint8ArrayToHex } from "./utils.js";
 
 console.log("=".repeat(80));
 console.log("CKB Lock Value Relationships Demo - Using CCC Library");
@@ -39,7 +39,7 @@ console.log(`   Length:\t\t${publicKey.length - 2} hex chars (33 bytes)`);
 console.log(`   Generation:\t\tCCC signer.publicKey vs secp256k1.publicKeyCreate().`);
 console.log(`   Purpose:\t\tPublic component of cryptographic key pair for digital signatures.`);
 
-// Step 3: Get address object from CCC to extract lock arg
+// Step 3: Lock Arg
 const addressObj = await signer.getAddressObjSecp256k1();
 const lockScript = addressObj.script;
 
@@ -55,7 +55,7 @@ console.log(`   CCC built-in:\t${lockScript.args}`);
 console.log(`   Manual calc:\t\t${manualLockArg}`);
 console.log(`   Match:\t\t${lockScript.args === manualLockArg ? "✓ Yes" : "✗ No"}`);
 console.log(`   Length:\t\t${lockScript.args.length - 2} hex chars (20 bytes)`);
-console.log(`   Generation:\t\tCCC signer.getAddressObjSecp256k1().script.args.`);
+console.log(`   Generation:\t\tCCC signer.getAddressObjSecp256k1().script.args vs blake2b().substring(0, 42).`);
 console.log(`   Purpose:\t\tUnique identifier derived from public key to specify ownership.`);
 
 // Step 4: Lock Script
