@@ -4,7 +4,7 @@ This project demonstrates the relationships of different lock values used in Ner
 
 ## What This Demonstrates
 
-The transformation chain:
+The complete value derivation chain:
 ```
 Private Key (32 bytes)
     ↓ secp256k1 elliptic curve
@@ -13,11 +13,20 @@ Public Key (33 bytes, compressed)
 Lock Arg (20 bytes)
     ↓ combine with code_hash + hash_type
 Lock Script (structure)
-    ↓ ckbhash of molecule-serialized script
-Lock Hash (32 bytes)
-    ↓ bech32m encoding with prefix
-Address (human-readable string)
+    ├── ckbhash of molecule-serialized script
+    │   └── Lock Hash (32 bytes)
+    └── bech32m encoding with prefix
+        └── Address (human-readable string)
 ```
+
+Each step in this chain serves a specific purpose and follows well-defined cryptographic standards:
+
+- **Private Key**: Your secret authority that must never be shared.
+- **Public Key**: Your public identity derived via secp256k1 elliptic curve cryptography.
+- **Lock Arg**: Your unique identifier (blake160) used in the script args field.
+- **Lock Script**: Your complete ownership specification combining code_hash + hash_type + args.
+- **Lock Hash**: Your script's unique fingerprint calculated from the serialized script.
+- **Address**: Your human-readable identifier that encodes the entire lock script.
 
 ## Files
 
