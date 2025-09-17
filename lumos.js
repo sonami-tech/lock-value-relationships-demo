@@ -10,16 +10,15 @@ import blake2b from "blake2b";
 import secp256k1 from "secp256k1";
 import { utils as lumosUtils } from "@ckb-lumos/base";
 import { initializeConfig } from "@ckb-lumos/config-manager";
-import { encodeToAddress } from "@ckb-lumos/helpers";
+import { encodeToAddress, addressToScript } from "@ckb-lumos/helpers";
 import { key } from "@ckb-lumos/hd";
 import { hexToUint8Array, uint8ArrayToHex } from "./utils.js";
 
 const { ckbHash, computeScriptHash } = lumosUtils;
 
-// Load configuration.
+// Setup - Load configuration and initialize Lumos.
+const PRIVATE_KEY = "0xd00c06bfd800d27397002dca6fb0993d5ba6399b4238b2f29ee9deb97593d2bc";
 const CONFIG = JSON.parse(fs.readFileSync("./config.json", "utf8"));
-
-// Initialize Lumos with configuration.
 initializeConfig(CONFIG);
 
 console.log("=".repeat(80));
@@ -27,7 +26,6 @@ console.log("CKB Lock Value Relationships Demo - Using Lumos Library");
 console.log("=".repeat(80));
 
 // Step 1: Private Key (32 bytes)
-const PRIVATE_KEY = "0xd00c06bfd800d27397002dca6fb0993d5ba6399b4238b2f29ee9deb97593d2bc";
 console.log(`\n1. Private Key:\t\t${PRIVATE_KEY}`);
 console.log(`   Length:\t\t${PRIVATE_KEY.length - 2} hex chars (32 bytes)`);
 console.log(`   Purpose:\t\tSecret key that is the basis of all derived values.`);
@@ -64,17 +62,36 @@ console.log(`   Generation:\t\tLumos ckbHash().substring(0, 42) vs blake2b().sub
 console.log(`   Purpose:\t\tUnique identifier derived from public key to specify ownership.`);
 
 // Step 4: Lock Script
-const lockScript = {
+// Lumos built-in method (using helpers).
+const tempAddress = encodeToAddress({
+	codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+	hashType: "type",
+	args: lockArg
+});
+const lumosLockScript = addressToScript(tempAddress);
+
+// Manual object construction for comparison.
+const manualLockScript = {
 	codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
 	hashType: "type",
 	args: lockArg
 };
+
 console.log(`\n4. Lock Script:`);
-console.log(`   codeHash:\t\t${lockScript.codeHash}`);
-console.log(`   hashType:\t\t${lockScript.hashType}`);
-console.log(`   args:\t\t${lockScript.args}`);
-console.log(`   Generation:\t\tManual object construction with lockArg.`);
+console.log(`   Lumos built-in:`);
+console.log(`     codeHash:\t\t${lumosLockScript.codeHash}`);
+console.log(`     hashType:\t\t${lumosLockScript.hashType}`);
+console.log(`     args:\t\t${lumosLockScript.args}`);
+console.log(`   Manual construction:`);
+console.log(`     codeHash:\t\t${manualLockScript.codeHash}`);
+console.log(`     hashType:\t\t${manualLockScript.hashType}`);
+console.log(`     args:\t\t${manualLockScript.args}`);
+console.log(`   Match:\t\t${JSON.stringify(lumosLockScript) === JSON.stringify(manualLockScript) ? "✓ Yes" : "✗ No"}`);
+console.log(`   Generation:\t\tLumos helpers.addressToScript() vs manual object construction.`);
 console.log(`   Purpose:\t\tComplete specification of lock ownership rules.`);
+
+// Use Lumos lock script for the rest of the demo.
+const lockScript = lumosLockScript;
 
 // Step 5: Lock Hash
 const lockHash = computeScriptHash(lockScript);
